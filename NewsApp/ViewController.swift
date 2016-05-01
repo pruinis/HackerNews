@@ -17,19 +17,27 @@ enum NewsURLKey {
 struct News {
 
   let title: String
-  let url: String?
-  let by: String
-  let score: Int
+  let url: NSURL?
   let time: NSDate
 
   init(snapshot: FDataSnapshot) {
-    self.title = ((snapshot.value["title"] as? String) != nil) ? snapshot.value["title"] as! String : ""
-    self.url = ((snapshot.value["url"] as? String) != nil) ? snapshot.value["url"] as! String : ""
-    self.by = ((snapshot.value["by"] as? String) != nil) ? snapshot.value["by"] as! String : ""
-    self.score = ((snapshot.value["score"] as? Int) != nil) ? snapshot.value["score"] as! Int : 0
 
-    let timeVal = ((snapshot.value["time"] as? Double) != nil) ? snapshot.value["time"] as! Double : 0
-    self.time = NSDate(timeIntervalSince1970:timeVal)
+    // title
+    self.title = ((snapshot.value["title"] as? String) != nil) ? snapshot.value["title"] as! String : ""
+
+    // url
+    if let urlStr = snapshot.value["url"] as? String where urlStr.isEmpty == false {
+      url = NSURL(string: urlStr)
+    } else {
+      url = nil
+    }
+
+    // time
+    if let time = snapshot.value["time"] as? Double where time > 0 {
+      self.time = NSDate(timeIntervalSince1970:time)
+    } else {
+      self.time = NSDate()
+    }
   }
 }
 
@@ -169,7 +177,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
 
     let news = newsArr[indexPath.row]
     if let url = news.url  {
-      let safariVC = SFSafariViewController(URL: NSURL(string: url)!)
+      let safariVC = SFSafariViewController(URL: url)
       safariVC.delegate = self
       presentViewController(safariVC, animated: true, completion: nil)
     }
